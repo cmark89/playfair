@@ -1,16 +1,16 @@
 #!/usr/bin/python
 import string
 
+# Constants
+MODE_NOQ = "MODE_NOQ"
+MODE_IJSWAP = "MODE_IJSWAP"
 
 # ---- Square class ----
 class PlayfairSquare:
-	# Constants
-	MODE_NOQ = "MODE_NOQ"
-	MODE_IJSWAP = "MODE_IJSWAP"
 
-	def __init__(self, keyword):
+	def __init__(self, keyword, mode = MODE_NOQ):
 		self.square = []
-		self.mode = PlayfairSquare.MODE_NOQ
+		self.mode = mode
 		self.build_translation_tables(keyword)
 		self.build_square(PlayfairSquare.build_alphabet(keyword))
 	
@@ -41,8 +41,8 @@ class PlayfairSquare:
 	def build_square(self, alphabet):
 		self.square = []
 		count = 0
-		if self.mode == PlayfairSquare.MODE_NOQ: alphabet.remove('Q')
-		elif self.mode == PlayfairSquare.MODE_IJSWAP: alphabetremove('J')
+		if self.mode == MODE_NOQ: alphabet.remove('Q')
+		elif self.mode == MODE_IJSWAP: alphabet.remove('J')
 		for y in range(0,5):
 			self.square.append([x for i,x in enumerate(alphabet) \
 				if i >= y * 5 and i < (y + 1) * 5])
@@ -101,10 +101,15 @@ class PlayfairSquare:
 		elif column < 0: column = 4
 		return self.square[row][column]
 
-	@staticmethod
-	def prepare_message(raw):
+	def prepare_message(self, raw):
 		cleaned = ""
 		for letter in raw:
+			if self.mode == MODE_NOQ and letter in ["q", "Q"]:
+				continue
+			elif self.mode == MODE_IJSWAP and \
+					letter in ["j", "J"]:
+				letter = "i"
+
 			if letter.isalpha():
 				cleaned += letter
 			
@@ -121,7 +126,7 @@ class PlayfairSquare:
 		return " ".join(pairs)
 
 	def encrypt(self, message):
-		message = PlayfairSquare.prepare_message(message)
+		message = self.prepare_message(message)
 		result = ""
 		for pair in message.split(" "):
 			result += self.cipher_pair(pair) + " "
